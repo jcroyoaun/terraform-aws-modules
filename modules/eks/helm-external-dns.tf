@@ -46,7 +46,7 @@ resource "helm_release" "external_dns" {
       name  = "sources[1]"
       value = "ingress"
     }
-  ], [
+    ], [
     # Add domain filters if specified
     for i, domain in var.external_dns_domain_filters : {
       name  = "domainFilters[${i}]"

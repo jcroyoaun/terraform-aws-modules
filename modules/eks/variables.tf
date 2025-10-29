@@ -134,7 +134,7 @@ variable "pod_identity_associations" {
   type = map(object({
     namespace       = string
     service_account = string
-    iam_policy_json = string  # Custom IAM policy as JSON string
+    iam_policy_json = string # Custom IAM policy as JSON string
     description     = optional(string, "")
   }))
   default = {}
@@ -144,12 +144,12 @@ variable "pod_identity_associations" {
 variable "helm_charts" {
   description = "Map of helm charts to deploy"
   type = map(object({
-    repository      = string
-    chart           = string
-    version         = string
-    namespace       = string
-    values_content  = optional(string, "")  # YAML values as string
-    pod_identity    = optional(string, "")  # Reference to pod_identity_associations key
+    repository     = string
+    chart          = string
+    version        = string
+    namespace      = string
+    values_content = optional(string, "") # YAML values as string
+    pod_identity   = optional(string, "") # Reference to pod_identity_associations key
   }))
   default = {}
 }

@@ -56,10 +56,10 @@ output "push_commands" {
   description = "Docker commands to build, tag, and push images to each repository"
   value = {
     for k, v in aws_ecr_repository.repositories : k => {
-      login = "aws ecr get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin ${v.repository_url}"
-      build = "docker build -t ${k} ."
-      tag   = "docker tag ${k}:latest ${v.repository_url}:latest"
-      push  = "docker push ${v.repository_url}:latest"
+      login        = "aws ecr get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin ${v.repository_url}"
+      build        = "docker build -t ${k} ."
+      tag          = "docker tag ${k}:latest ${v.repository_url}:latest"
+      push         = "docker push ${v.repository_url}:latest"
       full_command = "aws ecr get-login-password --region ${data.aws_region.current.name} | docker login --username AWS --password-stdin ${v.repository_url} && docker build -t ${k} . && docker tag ${k}:latest ${v.repository_url}:latest && docker push ${v.repository_url}:latest"
     }
   }

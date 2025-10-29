@@ -31,24 +31,24 @@ module "vpc" {
 module "eks" {
   source = "git::https://github.com/jcroyoaun/terraform-aws-modules.git//modules/eks?ref=v1.0.0"
 
-  region              = local.region
-  env                 = local.env
-  cluster_name        = local.eks.cluster_name
-  vpc_id              = module.vpc.vpc_id
-  private_subnet_ids  = module.vpc.private_subnet_ids
-  public_subnet_ids   = module.vpc.public_subnet_ids
-  kubernetes_version  = local.eks.kubernetes_version
-  
+  region             = local.region
+  env                = local.env
+  cluster_name       = local.eks.cluster_name
+  vpc_id             = module.vpc.vpc_id
+  private_subnet_ids = module.vpc.private_subnet_ids
+  public_subnet_ids  = module.vpc.public_subnet_ids
+  kubernetes_version = local.eks.kubernetes_version
+
   node_group_name     = local.eks.node_group.name
   node_instance_types = local.eks.node_group.instance_types
   node_capacity_type  = local.eks.node_group.capacity_type
   node_scaling_config = local.eks.node_group.scaling_config
   node_disk_size      = local.eks.node_group.disk_size
-  
+
   cluster_admin_arns  = local.eks.cluster_admin_arns
   addon_versions      = local.eks.addon_versions
   helm_chart_versions = local.eks.helm_chart_versions
-  
+
   external_dns_domain_filters   = [module.dns.external_dns_domain_filter]
   external_dns_hosted_zone_arns = [module.dns.external_dns_hosted_zone_arn]
 }

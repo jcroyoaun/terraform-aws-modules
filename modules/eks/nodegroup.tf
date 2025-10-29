@@ -6,7 +6,7 @@ resource "aws_eks_node_group" "initial" {
 
   capacity_type  = var.node_capacity_type
   instance_types = var.node_instance_types
-  
+
   scaling_config {
     desired_size = var.node_scaling_config.desired_size
     max_size     = var.node_scaling_config.max_size

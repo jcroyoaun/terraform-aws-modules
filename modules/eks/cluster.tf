@@ -33,10 +33,10 @@ resource "aws_eks_cluster" "main" {
 # Only create CloudWatch log group if logging is enabled
 resource "aws_cloudwatch_log_group" "eks" {
   count = var.enable_cluster_logging ? 1 : 0
-  
+
   name              = "/aws/eks/${var.cluster_name}/cluster"
   retention_in_days = var.log_retention_days
-  
+
   tags = {
     Environment = var.env
     Cluster     = var.cluster_name

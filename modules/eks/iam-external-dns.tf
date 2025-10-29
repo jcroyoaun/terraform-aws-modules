@@ -24,25 +24,25 @@ resource "aws_iam_role" "external_dns" {
 }
 
 resource "aws_iam_policy" "external_dns" {
-  name   = "${var.cluster_name}-ExternalDNS"
+  name = "${var.cluster_name}-ExternalDNS"
   policy = jsonencode({
-    "Version": "2012-10-17",
-    "Statement": [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        "Effect": "Allow",
-        "Action": [
+        "Effect" : "Allow",
+        "Action" : [
           "route53:ChangeResourceRecordSets"
         ],
-        "Resource": length(var.external_dns_hosted_zone_arns) > 0 ? var.external_dns_hosted_zone_arns : ["arn:aws:route53:::hostedzone/*"]
+        "Resource" : length(var.external_dns_hosted_zone_arns) > 0 ? var.external_dns_hosted_zone_arns : ["arn:aws:route53:::hostedzone/*"]
       },
       {
-        "Effect": "Allow",
-        "Action": [
+        "Effect" : "Allow",
+        "Action" : [
           "route53:ListHostedZones",
           "route53:ListResourceRecordSets",
           "route53:ListTagsForResource"
         ],
-        "Resource": [
+        "Resource" : [
           "*"
         ]
       }

@@ -15,7 +15,7 @@ resource "aws_ecr_repository" "repositories" {
 
   encryption_configuration {
     encryption_type = each.value.encryption_type
-    kms_key        = each.value.kms_key
+    kms_key         = each.value.kms_key
   }
 
   tags = merge(

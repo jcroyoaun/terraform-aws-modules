@@ -3,24 +3,24 @@
 # Local values for debugging
 locals {
   subdomain_name = "${var.subdomain}.${var.parent_domain}"
-  
+
   # Debug outputs
-  debug_subdomain = var.subdomain          # Should be "demo"  
-  debug_parent    = var.parent_domain      # Should be "jcroyoaun.com"
-  debug_full      = local.subdomain_name   # Should be "demo.jcroyoaun.com"
+  debug_subdomain = var.subdomain        # Should be "demo"  
+  debug_parent    = var.parent_domain    # Should be "jcroyoaun.com"
+  debug_full      = local.subdomain_name # Should be "demo.jcroyoaun.com"
 }
 
 # Route53 Hosted Zone for SUBDOMAIN (not parent!)
 resource "aws_route53_zone" "subdomain" {
-  name = local.subdomain_name  # This should be "demo.jcroyoaun.com"
+  name = local.subdomain_name # This should be "demo.jcroyoaun.com"
 
   tags = {
-    Environment   = var.env
-    ManagedBy     = "terraform"
-    Domain        = local.subdomain_name
-    ParentDomain  = var.parent_domain
-    Subdomain     = var.subdomain
-    DebugFull     = local.debug_full
+    Environment  = var.env
+    ManagedBy    = "terraform"
+    Domain       = local.subdomain_name
+    ParentDomain = var.parent_domain
+    Subdomain    = var.subdomain
+    DebugFull    = local.debug_full
   }
 
   lifecycle {
@@ -30,8 +30,8 @@ resource "aws_route53_zone" "subdomain" {
 
 # NS record in PARENT zone for subdomain delegation
 resource "aws_route53_record" "delegation" {
-  zone_id = var.parent_hosted_zone_id  # This is your existing jcroyoaun.com zone
-  name    = var.subdomain              # This creates "demo" record
+  zone_id = var.parent_hosted_zone_id # This is your existing jcroyoaun.com zone
+  name    = var.subdomain             # This creates "demo" record
   type    = "NS"
   ttl     = 300
 
@@ -44,7 +44,7 @@ resource "aws_route53_record" "delegation" {
 
 # ACM Certificate for SUBDOMAIN
 resource "aws_acm_certificate" "subdomain" {
-  domain_name               = local.subdomain_name      # demo.jcroyoaun.com
+  domain_name               = local.subdomain_name          # demo.jcroyoaun.com
   subject_alternative_names = ["*.${local.subdomain_name}"] # *.demo.jcroyoaun.com
   validation_method         = "DNS"
 
@@ -53,11 +53,11 @@ resource "aws_acm_certificate" "subdomain" {
   }
 
   tags = {
-    Environment   = var.env
-    ManagedBy     = "terraform"
-    Domain        = local.subdomain_name
-    ParentDomain  = var.parent_domain
-    Subdomain     = var.subdomain
+    Environment  = var.env
+    ManagedBy    = "terraform"
+    Domain       = local.subdomain_name
+    ParentDomain = var.parent_domain
+    Subdomain    = var.subdomain
   }
 }
 
@@ -76,7 +76,7 @@ resource "aws_route53_record" "cert_validation" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = aws_route53_zone.subdomain.zone_id  # Validation in SUBDOMAIN zone
+  zone_id         = aws_route53_zone.subdomain.zone_id # Validation in SUBDOMAIN zone
 }
 
 # Certificate validation

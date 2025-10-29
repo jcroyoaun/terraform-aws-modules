@@ -74,7 +74,7 @@ output "debug_subdomain" {
 }
 
 output "debug_parent_domain" {
-  description = "Debug: parent domain variable value"  
+  description = "Debug: parent domain variable value"
   value       = var.parent_domain
 }
 

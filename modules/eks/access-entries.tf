@@ -4,7 +4,7 @@ resource "aws_eks_access_entry" "cluster_admin" {
   cluster_name      = aws_eks_cluster.main.name
   principal_arn     = var.cluster_admin_arns[count.index]
   kubernetes_groups = []
-  type             = "STANDARD"
+  type              = "STANDARD"
 
   tags = {
     Environment = var.env
