@@ -1,0 +1,51 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master 
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.9.0
+
+      - name: Validate modules
+        run: |
+          for module in modules/*; do
+            echo "Validating $module..."
+            cd $module
+            terraform init -backend=false
+            terraform validate
+            cd ../..
+          done
+
+      - name: Format check
+        run: terraform fmt -recursive -check
+
+  release:
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Bump version and push tag
+        uses: anothrNick/github-tag-action@1.67.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          WITH_V: true
+          DEFAULT_BUMP: patch
+          RELEASE_BRANCHES: master
+          INITIAL_VERSION: 1.0.0
