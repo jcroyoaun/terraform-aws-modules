@@ -72,7 +72,7 @@ variable "node_disk_size" {
 variable "node_ami_type" {
   description = "Type of Amazon Machine Image (AMI) associated with the EKS Node Group"
   type        = string
-  default     = "AL2023_X86_64_STANDARD"
+  default     = "AL2023_x86_64_STANDARD"
 }
 
 # Addon versions
