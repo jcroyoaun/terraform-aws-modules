@@ -148,7 +148,7 @@ variable "helm_charts" {
     chart            = string
     version          = string
     namespace        = string
-    create_namespace = true
+    create_namespace = optional(bool, true)
     values_content   = optional(string, "") # YAML values as string
     pod_identity     = optional(string, "") # Reference to pod_identity_associations key
   }))
