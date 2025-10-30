@@ -43,3 +43,17 @@ output "kubectl_config_command" {
   value       = "aws eks update-kubeconfig --region ${var.region} --name ${aws_eks_cluster.main.name}"
 }
 
+output "karpenter_node_role_arn" {
+  description = "ARN of the Karpenter node IAM role"
+  value       = var.enable_karpenter ? aws_iam_role.karpenter_node[0].arn : null
+}
+
+output "karpenter_node_role_name" {
+  description = "Name of the Karpenter node IAM role"
+  value       = var.enable_karpenter ? aws_iam_role.karpenter_node[0].name : null
+}
+
+output "karpenter_queue_name" {
+  description = "Name of the Karpenter SQS interruption queue"
+  value       = var.enable_karpenter ? aws_sqs_queue.karpenter_interruption[0].name : null
+}

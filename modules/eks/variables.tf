@@ -166,3 +166,21 @@ variable "external_dns_hosted_zone_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_karpenter" {
+  description = "Enable Karpenter autoscaler"
+  type        = bool
+  default     = false
+}
+
+variable "karpenter_version" {
+  description = "Karpenter Helm chart version"
+  type        = string
+  default     = "1.8.1"
+}
+
+variable "karpenter_namespace" {
+  description = "Kubernetes namespace for Karpenter"
+  type        = string
+  default     = "kube-system"
+}
