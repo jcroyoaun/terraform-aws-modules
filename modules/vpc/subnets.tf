@@ -13,6 +13,19 @@ resource "aws_subnet" "public" {
   }
 }
 
+resource "aws_subnet" "isolated" {
+  count = var.create_isolated_subnets ? length(var.azs) : 0
+
+  vpc_id            = aws_vpc.main.id
+  cidr_block        = var.isolated_subnet_cidrs[count.index]
+  availability_zone = "${var.region}${var.azs[count.index]}"
+
+  tags = {
+    "Name" = "${var.env}-isolated-${var.region}${var.azs[count.index]}"
+  }
+}
+
+
 resource "aws_subnet" "private" {
   for_each = var.private_subnets
 
