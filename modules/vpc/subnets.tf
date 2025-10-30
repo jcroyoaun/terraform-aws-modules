@@ -20,20 +20,6 @@ resource "aws_subnet" "private" {
   cidr_block        = each.value.cidr
   availability_zone = "${var.region}${each.value.az}"
 
-  tags = {
-    "Name"                                      = "${var.env}-private-${each.value.az}"
-    "kubernetes.io/role/internal-elb"           = "1"
-    "kubernetes.io/cluster/${var.cluster_name}" = var.cluster_name != "" ? "owned" : ""
-  }
-}
-
-resource "aws_subnet" "private" {
-  for_each = var.private_subnets
-
-  vpc_id            = aws_vpc.main.id
-  cidr_block        = each.value.cidr
-  availability_zone = "${var.region}${each.value.az}"
-
   tags = merge(
     {
       "Name"                                      = "${var.env}-private-${each.value.az}"
