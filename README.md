@@ -30,6 +30,7 @@ Additionally, EKS module provides an easy way to create pod identity mappings fo
 
 **ECR Module** - Creates container image repositories passed as a list of elements.
 
+**k8s-manifests Module** - Applies Kubernetes manifests via Terraform with template variable support, ensuring proper dependency ordering after cluster provisioning.
 
 
 ## Sample resulting high level diagram  
