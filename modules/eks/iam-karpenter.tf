@@ -174,7 +174,7 @@ resource "aws_iam_policy" "karpenter_controller" {
           StringEqualsIfExists = {
             "aws:RequestTag/eks:eks-cluster-name" = var.cluster_name
           }
-          ForAllValues:StringEquals = {
+          "ForAllValues:StringEquals" = {
             "aws:TagKeys" = [
               "eks:eks-cluster-name",
               "karpenter.sh/nodeclaim",
