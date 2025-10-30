@@ -1,12 +1,12 @@
 resource "helm_release" "generic_charts" {
   for_each = var.helm_charts
 
-  name       = each.value.chart
-  repository = each.value.repository
-  chart      = each.value.chart
-  version    = each.value.version
-  namespace  = each.value.namespace
-
+  name             = each.value.chart
+  repository       = each.value.repository
+  chart            = each.value.chart
+  version          = each.value.version
+  namespace        = each.value.namespace
+  create_namespace = each.value.create_namespace
   # Use values content if provided
   values = each.value.values_content != "" ? [each.value.values_content] : []
 

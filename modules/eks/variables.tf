@@ -144,12 +144,13 @@ variable "pod_identity_associations" {
 variable "helm_charts" {
   description = "Map of helm charts to deploy"
   type = map(object({
-    repository     = string
-    chart          = string
-    version        = string
-    namespace      = string
-    values_content = optional(string, "") # YAML values as string
-    pod_identity   = optional(string, "") # Reference to pod_identity_associations key
+    repository       = string
+    chart            = string
+    version          = string
+    namespace        = string
+    create_namespace = true
+    values_content   = optional(string, "") # YAML values as string
+    pod_identity     = optional(string, "") # Reference to pod_identity_associations key
   }))
   default = {}
 }
