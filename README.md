@@ -6,10 +6,10 @@ This setup follows good practices and high security standards, and can be adapte
 
 ## The modules
 
-**VPC Module** - Helps create a VPC with 2 or 3 subnets and its default routes :
+**VPC Module** - Helps create a VPC with 2 or 3 subnet tiers, and its default routes :
 * public - with an internet gateway
 * private - with a NAT gateway
-* isolated - for DBs. Traffic only accessible from the same VPC
+* isolated - for DBs. Traffic only accessible from within same VPC
 
 **DNS Module** - Will help create a subdomain by performing a delegation of authority on an existing domain (assuming Domain APEX is in the same AWS account), along with its TLS certs with ACM.
 
