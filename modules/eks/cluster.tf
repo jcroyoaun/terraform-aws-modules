@@ -18,11 +18,15 @@ resource "aws_eks_cluster" "main" {
   # Only enable logging if requested
   enabled_cluster_log_types = var.enable_cluster_logging ? var.cluster_log_types : []
 
-  tags = {
-    Environment = var.env
-    Cluster     = var.cluster_name
-    ManagedBy   = "terraform"
-  }
+tags = merge(
+    {
+      Environment = var.env
+      Cluster     = var.cluster_name
+      ManagedBy   = "terraform"
+    },
+    # Conditionally add the Karpenter tag
+    var.enable_karpenter ? { "karpenter.sh/discovery" = var.cluster_name } : {}
+  )
 
   depends_on = [
     aws_iam_role_policy_attachment.cluster_amazon_eks_cluster_policy,

@@ -27,15 +27,19 @@ resource "aws_subnet" "private" {
   }
 }
 
-resource "aws_subnet" "isolated" {
-  count = var.create_isolated_subnets ? length(var.azs) : 0
+resource "aws_subnet" "private" {
+  for_each = var.private_subnets
 
   vpc_id            = aws_vpc.main.id
-  cidr_block        = var.isolated_subnet_cidrs[count.index]
-  availability_zone = "${var.region}${var.azs[count.index]}"
+  cidr_block        = each.value.cidr
+  availability_zone = "${var.region}${each.value.az}"
 
-  tags = {
-    "Name" = "${var.env}-isolated-${var.region}${var.azs[count.index]}"
-  }
+  tags = merge(
+    {
+      "Name"                                   = "${var.env}-private-${each.value.az}"
+      "kubernetes.io/role/internal-elb"        = "1"
+      "kubernetes.io/cluster/${var.cluster_name}" = var.cluster_name != "" ? "owned" : ""
+    },
+    var.private_subnet_tags
+  )
 }
-
