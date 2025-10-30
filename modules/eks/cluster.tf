@@ -18,7 +18,7 @@ resource "aws_eks_cluster" "main" {
   # Only enable logging if requested
   enabled_cluster_log_types = var.enable_cluster_logging ? var.cluster_log_types : []
 
-tags = merge(
+  tags = merge(
     {
       Environment = var.env
       Cluster     = var.cluster_name
