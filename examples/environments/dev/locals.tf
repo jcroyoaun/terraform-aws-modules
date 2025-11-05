@@ -48,7 +48,7 @@ locals {
     kubernetes_version = "1.34"
 
     node_group = {
-      name           = "initial"
+      name           = "system"
       instance_types = ["t3a.medium", "t3a.large"]
       capacity_type  = "SPOT"
       scaling_config = {
@@ -72,43 +72,22 @@ locals {
     }
 
     charts = {
-      "aws-lbc" = {
-        repository           = "https://aws.github.io/eks-charts"
-        chart                = "aws-load-balancer-controller"
-        version              = "1.10.1"
+      "ebs-csi-driver" = {
+        repository           = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
+        chart                = "aws-ebs-csi-driver"
+        version              = "2.36.0"
         namespace            = "kube-system"
         create_namespace     = false
-        iam_type             = "aws-lbc"
-        service_account_name = "aws-load-balancer-controller"
-        values_content = yamlencode({
-          clusterName = "${local.env}-eks-cluster"
-          vpcId       = module.vpc.vpc_id
-          region      = local.region
-          serviceAccount = {
-            create = false
-            name   = "aws-load-balancer-controller"
-          }
-        })
-      },
-
-      "ebs-csi-driver" = {
-        repository       = "https://kubernetes-sigs.github.io/aws-ebs-csi-driver"
-        chart            = "aws-ebs-csi-driver"
-        version          = "2.36.0"
-        namespace        = "kube-system"
-        create_namespace = false
-        # This new type triggers the IAM role you just fixed
         iam_type             = "ebs-csi"
         service_account_name = "ebs-csi-controller-sa"
+        phase                = 1 # Phase 1: Foundation
         values_content = yamlencode({
           controller = {
             serviceAccount = {
-              # Let Helm create the ServiceAccount
               create = true
               name   = "ebs-csi-controller-sa"
             }
           }
-          # This is the correct block for your StorageClass
           storageClasses = [
             {
               name = "gp3"
@@ -125,6 +104,26 @@ locals {
         })
       },
 
+      "aws-lbc" = {
+        repository           = "https://aws.github.io/eks-charts"
+        chart                = "aws-load-balancer-controller"
+        version              = "1.10.1"
+        namespace            = "kube-system"
+        create_namespace     = false
+        iam_type             = "aws-lbc"
+        service_account_name = "aws-load-balancer-controller"
+        phase                = 1
+        values_content = yamlencode({
+          clusterName = "${local.env}-eks-cluster"
+          vpcId       = module.vpc.vpc_id
+          region      = local.region
+          serviceAccount = {
+            create = true
+            name   = "aws-load-balancer-controller"
+          }
+        })
+      },
+
       "external-dns" = {
         repository           = "https://kubernetes-sigs.github.io/external-dns/"
         chart                = "external-dns"
@@ -133,18 +132,39 @@ locals {
         create_namespace     = false
         iam_type             = "external-dns"
         service_account_name = "external-dns"
+        phase                = 2
         values_content = yamlencode({
           provider = "aws"
           aws      = { region = local.region }
           serviceAccount = {
-            create = false
+            create = true
             name   = "external-dns"
           }
-          policy = "sync"
-          # 5. Reference local.cluster_name (NOT local.eks.cluster_name)
+          policy        = "sync"
           txtOwnerId    = "${local.env}-eks-cluster"
           sources       = ["service", "ingress"]
           domainFilters = [module.dns.external_dns_domain_filter]
+        })
+      },
+
+      "external-secrets" = {
+        repository           = "https://charts.external-secrets.io"
+        chart                = "external-secrets"
+        version              = "0.12.1"
+        namespace            = "external-secrets-system"
+        create_namespace     = true
+        iam_type             = "external-secrets"
+        service_account_name = "external-secrets"
+        phase                = 2
+        values_content = yamlencode({
+          installCRDs = true
+          serviceAccount = {
+            create = true
+            name   = "external-secrets"
+          }
+          webhook = {
+            port = 9443
+          }
         })
       },
 
@@ -155,6 +175,7 @@ locals {
         namespace        = "kube-system"
         create_namespace = false
         iam_type         = "none"
+        phase            = 2 # Phase 2: Can deploy with other monitoring tools
         values_content = yamlencode({
           defaultArgs = [
             "--cert-dir=/tmp",
@@ -163,6 +184,98 @@ locals {
             "--metric-resolution=15s",
             "--secure-port=10250"
           ]
+        })
+      },
+
+      "kube-prometheus-stack" = {
+        repository       = "https://prometheus-community.github.io/helm-charts"
+        chart            = "kube-prometheus-stack"
+        version          = "67.4.0"
+        namespace        = "monitoring"
+        create_namespace = true
+        iam_type         = "none"
+        phase            = 2 # Phase 2: Needs storage, LB controller, and external-dns
+        values_content = yamlencode({
+          prometheus = {
+            prometheusSpec = {
+              retention = "15d"
+              storageSpec = {
+                volumeClaimTemplate = {
+                  spec = {
+                    storageClassName = "gp3"
+                    accessModes      = ["ReadWriteOnce"]
+                    resources = {
+                      requests = {
+                        storage = "50Gi"
+                      }
+                    }
+                  }
+                }
+              }
+              resources = {
+                requests = {
+                  cpu    = "500m"
+                  memory = "2Gi"
+                }
+                limits = {
+                  cpu    = "1000m"
+                  memory = "4Gi"
+                }
+              }
+            }
+          }
+
+          grafana = {
+            enabled       = true
+            adminPassword = "CHANGEME"
+
+            ingress = {
+              enabled          = true
+              ingressClassName = "alb"
+              annotations = {
+                "alb.ingress.kubernetes.io/scheme"          = "internet-facing"
+                "alb.ingress.kubernetes.io/target-type"     = "ip"
+                "alb.ingress.kubernetes.io/listen-ports"    = jsonencode([{ HTTPS = 443 }])
+                "external-dns.alpha.kubernetes.io/hostname" = "grafana.liftnotebook.jcroyoaun.com"
+              }
+              hosts = ["grafana.liftnotebook.jcroyoaun.com"]
+            }
+
+            persistence = {
+              enabled          = true
+              storageClassName = "gp3"
+              size             = "10Gi"
+            }
+
+            resources = {
+              requests = {
+                cpu    = "100m"
+                memory = "256Mi"
+              }
+              limits = {
+                cpu    = "200m"
+                memory = "512Mi"
+              }
+            }
+          }
+        })
+      },
+
+      # Karpenter: Auto-scaler (deploys LAST - has special dependencies)
+      "karpenter" = {
+        repository           = "oci://public.ecr.aws/karpenter"
+        chart                = "karpenter"
+        version              = "1.8.1"
+        namespace            = "kube-system"
+        create_namespace     = false
+        iam_type             = "karpenter"
+        service_account_name = "karpenter"
+        phase                = 2 # Not used for Karpenter, it has custom deployment logic
+        values_content = yamlencode({
+          serviceAccount = {
+            create = true
+            name   = "karpenter"
+          }
         })
       }
     }

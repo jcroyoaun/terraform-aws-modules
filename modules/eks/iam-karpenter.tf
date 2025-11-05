@@ -1,6 +1,6 @@
 # Karpenter Node IAM Role
 resource "aws_iam_role" "karpenter_node" {
-  count = var.enable_karpenter ? 1 : 0
+  count = local.enable_karpenter ? 1 : 0
 
   name = "${var.cluster_name}-karpenter-node"
 
@@ -25,7 +25,7 @@ resource "aws_iam_role" "karpenter_node" {
 
 # Attach required policies to Karpenter node role
 resource "aws_iam_role_policy_attachment" "karpenter_node_policies" {
-  for_each = var.enable_karpenter ? toset([
+  for_each = local.enable_karpenter ? toset([
     "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
     "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
     "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryPullOnly",
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy_attachment" "karpenter_node_policies" {
 
 # Karpenter Controller IAM Role
 resource "aws_iam_role" "karpenter_controller" {
-  count = var.enable_karpenter ? 1 : 0
+  count = local.enable_karpenter ? 1 : 0
 
   name = "${var.cluster_name}-karpenter-controller"
 
@@ -66,7 +66,7 @@ resource "aws_iam_role" "karpenter_controller" {
 
 # Karpenter Controller Policy
 resource "aws_iam_policy" "karpenter_controller" {
-  count = var.enable_karpenter ? 1 : 0
+  count = local.enable_karpenter ? 1 : 0
 
   name = "${var.cluster_name}-karpenter-controller"
 
@@ -239,7 +239,7 @@ resource "aws_iam_policy" "karpenter_controller" {
       {
         Sid      = "AllowInterruptionQueueActions"
         Effect   = "Allow"
-        Resource = var.enable_karpenter ? aws_sqs_queue.karpenter_interruption[0].arn : ""
+        Resource = local.enable_karpenter ? aws_sqs_queue.karpenter_interruption[0].arn : ""
         Action = [
           "sqs:DeleteMessage",
           "sqs:GetQueueUrl",
@@ -249,7 +249,7 @@ resource "aws_iam_policy" "karpenter_controller" {
       {
         Sid      = "AllowPassingInstanceRole"
         Effect   = "Allow"
-        Resource = var.enable_karpenter ? aws_iam_role.karpenter_node[0].arn : ""
+        Resource = local.enable_karpenter ? aws_iam_role.karpenter_node[0].arn : ""
         Action   = "iam:PassRole"
         Condition = {
           StringEquals = {
@@ -344,7 +344,7 @@ resource "aws_iam_policy" "karpenter_controller" {
 }
 
 resource "aws_iam_role_policy_attachment" "karpenter_controller" {
-  count = var.enable_karpenter ? 1 : 0
+  count = local.enable_karpenter ? 1 : 0
 
   policy_arn = aws_iam_policy.karpenter_controller[0].arn
   role       = aws_iam_role.karpenter_controller[0].name

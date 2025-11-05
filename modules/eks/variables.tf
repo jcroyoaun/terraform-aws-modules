@@ -119,10 +119,6 @@ variable "log_retention_days" {
   default     = 30
 }
 
-
-
-
-
 variable "pod_identity_associations" {
   description = "Map of pod identity associations to create"
   type = map(object({
@@ -195,6 +191,11 @@ variable "charts" {
     iam_policy_json = optional(string, null)
 
     service_account_name = optional(string, null)
+
+    # Phase number for sequential deployment (1, 2, 3, etc.)
+    # Charts in phase 1 deploy first, then phase 2, etc.
+    # Charts in same phase deploy in parallel
+    phase = optional(number, 1)
   }))
   default = {}
 }

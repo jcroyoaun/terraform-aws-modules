@@ -39,14 +39,13 @@ module "vpc" {
 module "eks" {
   source = "../../../modules/eks"
 
-  region             = local.region
-  env                = local.env
-  cluster_name       = local.eks.cluster_name
-  vpc_id             = module.vpc.vpc_id
-  private_subnet_ids = module.vpc.private_subnet_ids
-  public_subnet_ids  = module.vpc.public_subnet_ids
-  kubernetes_version = local.eks.kubernetes_version
-
+  region              = local.region
+  env                 = local.env
+  cluster_name        = local.eks.cluster_name
+  vpc_id              = module.vpc.vpc_id
+  private_subnet_ids  = module.vpc.private_subnet_ids
+  public_subnet_ids   = module.vpc.public_subnet_ids
+  kubernetes_version  = local.eks.kubernetes_version
   node_group_name     = local.eks.node_group.name
   node_instance_types = local.eks.node_group.instance_types
   node_capacity_type  = local.eks.node_group.capacity_type
