@@ -60,3 +60,32 @@ module "eks" {
   external_dns_domain_filters   = [module.dns.external_dns_domain_filter]
   external_dns_hosted_zone_arns = [module.dns.external_dns_hosted_zone_arn]
 }
+
+# Apply Karpenter manifests at the VERY END (after Karpenter Helm chart is ready)
+module "karpenter_manifests" {
+  source = "../../../modules/k8s-manifests"
+
+  cluster_name           = module.eks.cluster_name
+  cluster_region         = local.region
+  cluster_endpoint       = module.eks.cluster_endpoint
+  cluster_ca_certificate = module.eks.cluster_certificate_authority_data
+
+  manifests = {
+    karpenter_ec2nodeclass = {
+      file_path = "${path.module}/manifests/karpenter-ec2nodeclass.yaml.tpl"
+      vars = {
+        karpenter_role = module.eks.karpenter_node_role_name
+        discovery_tag  = local.eks.cluster_name
+      }
+    }
+    karpenter_nodepool = {
+      file_path = "${path.module}/manifests/karpenter-nodepool.yaml.tpl"
+      vars = {
+        # Add any vars if needed in the future
+      }
+    }
+  }
+
+  # WAIT FOR EVERYTHING - especially Karpenter Helm release
+  cluster_ready_dependency = module.eks.karpenter_helm_release
+}

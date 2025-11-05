@@ -18,6 +18,11 @@ output "cluster_endpoint" {
   value       = aws_eks_cluster.main.endpoint
 }
 
+output "cluster_certificate_authority_data" {
+  description = "EKS cluster certificate authority data"
+  value       = aws_eks_cluster.main.certificate_authority[0].data
+}
+
 output "cluster_version" {
   description = "EKS cluster version"
   value       = aws_eks_cluster.main.version
@@ -49,8 +54,13 @@ output "karpenter_node_role_arn" {
 }
 
 output "karpenter_node_role_name" {
-  description = "Name of the Karpenter node IAM role"
+  description = "Name of the Karpenter node IAM role (without path)"
   value       = local.enable_karpenter ? aws_iam_role.karpenter_node[0].name : null
+}
+
+output "karpenter_helm_release" {
+  description = "Karpenter Helm release for dependency management"
+  value       = local.enable_karpenter ? helm_release.karpenter : null
 }
 
 output "karpenter_queue_name" {
