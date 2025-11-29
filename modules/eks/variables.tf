@@ -119,16 +119,6 @@ variable "log_retention_days" {
   default     = 30
 }
 
-
-variable "helm_chart_versions" {
-  description = "Versions for Helm charts"
-  type = object({
-    aws_load_balancer_controller = string
-    external_dns                 = string
-  })
-}
-
-
 variable "pod_identity_associations" {
   description = "Map of pod identity associations to create"
   type = map(object({
@@ -184,4 +174,28 @@ variable "karpenter_namespace" {
   description = "Kubernetes namespace for Karpenter"
   type        = string
   default     = "kube-system"
+}
+
+variable "charts" {
+  description = "Map of Helm charts and their configurations to deploy. The map key is the release name."
+  type = map(object({
+    repository       = string
+    chart            = string
+    version          = string
+    namespace        = string
+    create_namespace = optional(bool, false)
+    values_content   = optional(string, "")
+
+    iam_type = optional(string, "none")
+
+    iam_policy_json = optional(string, null)
+
+    service_account_name = optional(string, null)
+
+    # Phase number for sequential deployment (1, 2, 3, etc.)
+    # Charts in phase 1 deploy first, then phase 2, etc.
+    # Charts in same phase deploy in parallel
+    phase = optional(number, 1)
+  }))
+  default = {}
 }

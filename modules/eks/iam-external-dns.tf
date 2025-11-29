@@ -13,6 +13,8 @@ data "aws_iam_policy_document" "external_dns" {
 }
 
 resource "aws_iam_role" "external_dns" {
+  # --- FIX: ADD THIS FOR_EACH ---
+  for_each           = local.charts_external_dns
   name               = "${var.cluster_name}-external-dns"
   assume_role_policy = data.aws_iam_policy_document.external_dns.json
 
@@ -24,7 +26,9 @@ resource "aws_iam_role" "external_dns" {
 }
 
 resource "aws_iam_policy" "external_dns" {
-  name = "${var.cluster_name}-ExternalDNS"
+  # --- FIX: ADD THIS FOR_EACH ---
+  for_each = local.charts_external_dns
+  name     = "${var.cluster_name}-ExternalDNS"
   policy = jsonencode({
     "Version" : "2012-10-17",
     "Statement" : [
@@ -57,19 +61,10 @@ resource "aws_iam_policy" "external_dns" {
 }
 
 resource "aws_iam_role_policy_attachment" "external_dns" {
-  policy_arn = aws_iam_policy.external_dns.arn
-  role       = aws_iam_role.external_dns.name
+  # --- FIX: ADD THIS FOR_EACH ---
+  for_each   = local.charts_external_dns
+  policy_arn = aws_iam_policy.external_dns[each.key].arn
+  role       = aws_iam_role.external_dns[each.key].name
 }
 
-resource "aws_eks_pod_identity_association" "external_dns" {
-  cluster_name    = aws_eks_cluster.main.name
-  namespace       = "kube-system"
-  service_account = "external-dns"
-  role_arn        = aws_iam_role.external_dns.arn
-
-  tags = {
-    Environment = var.env
-    Cluster     = var.cluster_name
-    ManagedBy   = "terraform"
-  }
-}
+# --- THE aws_eks_pod_identity_association BLOCK IS DELETED ---

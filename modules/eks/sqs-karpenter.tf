@@ -1,5 +1,5 @@
 resource "aws_sqs_queue" "karpenter_interruption" {
-  count = var.enable_karpenter ? 1 : 0
+  count = local.enable_karpenter ? 1 : 0
 
   name                      = "${var.cluster_name}-karpenter"
   message_retention_seconds = 300
@@ -14,7 +14,7 @@ resource "aws_sqs_queue" "karpenter_interruption" {
 }
 
 resource "aws_sqs_queue_policy" "karpenter_interruption" {
-  count = var.enable_karpenter ? 1 : 0
+  count = local.enable_karpenter ? 1 : 0
 
   queue_url = aws_sqs_queue.karpenter_interruption[0].id
 
