@@ -51,9 +51,13 @@ module "eks" {
   node_capacity_type  = local.eks.node_group.capacity_type
   node_scaling_config = local.eks.node_group.scaling_config
   node_disk_size      = local.eks.node_group.disk_size
+  node_taints         = local.eks.node_group.taints
+  node_labels         = local.eks.node_group.labels
 
-  cluster_admin_arns = local.eks.cluster_admin_arns
-  addon_versions     = local.eks.addon_versions
+  cluster_admin_arns    = local.eks.cluster_admin_arns
+  addon_versions        = local.eks.addon_versions
+  coredns_tolerations   = local.common_tolerations
+  coredns_node_selector = local.common_node_selector
 
   charts = local.eks.charts
 

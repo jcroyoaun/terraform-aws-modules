@@ -199,3 +199,31 @@ variable "charts" {
   }))
   default = {}
 }
+
+variable "node_taints" {
+  description = "List of taints to apply to the EKS Node Group"
+  type = list(object({
+    key    = string
+    value  = string
+    effect = string # NO_SCHEDULE, NO_EXECUTE, PREFER_NO_SCHEDULE (AWS EKS format)
+  }))
+  default = []
+}
+
+variable "node_labels" {
+  description = "Map of labels to apply to the EKS Node Group"
+  type        = map(string)
+  default     = {}
+}
+
+variable "coredns_tolerations" {
+  description = "Tolerations to apply to CoreDNS pods (allows them to run on tainted nodes)"
+  type        = list(any)
+  default     = []
+}
+
+variable "coredns_node_selector" {
+  description = "Node selector to force CoreDNS pods onto specific nodes"
+  type        = map(string)
+  default     = {}
+}

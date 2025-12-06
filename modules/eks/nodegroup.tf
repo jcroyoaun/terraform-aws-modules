@@ -21,9 +21,22 @@ resource "aws_eks_node_group" "initial" {
     max_unavailable = 1
   }
 
-  labels = {
-    role = "initial"
-    type = lower(var.node_capacity_type)
+  labels = merge(
+    {
+      role = "initial"
+      type = lower(var.node_capacity_type)
+    },
+    var.node_labels # Merge custom labels from user
+  )
+
+  # Apply taints to nodes (if any)
+  dynamic "taint" {
+    for_each = var.node_taints
+    content {
+      key    = taint.value.key
+      value  = taint.value.value
+      effect = taint.value.effect
+    }
   }
 
   tags = {

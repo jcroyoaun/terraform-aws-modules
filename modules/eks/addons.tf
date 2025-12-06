@@ -6,6 +6,12 @@ resource "aws_eks_addon" "cluster_addons" {
   addon_version               = each.value
   resolve_conflicts_on_update = "OVERWRITE"
 
+  # Custom configuration for CoreDNS to add tolerations and node selectors
+  configuration_values = each.key == "coredns" && (length(var.coredns_tolerations) > 0 || length(var.coredns_node_selector) > 0) ? jsonencode({
+    tolerations  = var.coredns_tolerations
+    nodeSelector = var.coredns_node_selector
+  }) : null
+
   tags = {
     Environment = var.env
     Cluster     = var.cluster_name

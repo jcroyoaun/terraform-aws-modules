@@ -2,6 +2,24 @@ locals {
   region = "us-east-1"
   env    = "dev"
 
+  # I like to taint day 0 nodes.
+  # These common tolerations are to allow day 0 workloads
+  # to schedule on the tainted system nodes
+  common_tolerations = [
+    {
+      key      = "node-role"
+      operator = "Equal"
+      value    = "system"
+      effect   = "NoSchedule"
+    }
+  ]
+
+  # Node selector for ALL infrastructure workloads
+  # This FORCES them to schedule on system nodes only
+  common_node_selector = {
+    "node-role" = "system"
+  }
+
   # DNS configuration
   dns = {
     subdomain             = "liftnotebook"
@@ -57,6 +75,20 @@ locals {
         min_size     = 1
       }
       disk_size = 50
+
+      # Taint day 0 system nodes so only infrastructure workloads can run here
+      taints = [
+        {
+          key    = "node-role"
+          value  = "system"
+          effect = "NO_SCHEDULE" # AWS EKS format (uppercase with underscore)
+        }
+      ]
+
+      # Label system nodes
+      labels = {
+        "node-role" = "system"
+      }
     }
 
     cluster_admin_arns = [
@@ -87,6 +119,12 @@ locals {
               create = true
               name   = "ebs-csi-controller-sa"
             }
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
+          }
+          node = {
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
           }
           storageClasses = [
             {
@@ -121,6 +159,8 @@ locals {
             create = true
             name   = "aws-load-balancer-controller"
           }
+          tolerations  = local.common_tolerations
+          nodeSelector = local.common_node_selector
         })
       },
 
@@ -144,6 +184,8 @@ locals {
           txtOwnerId    = "${local.env}-eks-cluster"
           sources       = ["service", "ingress"]
           domainFilters = [module.dns.external_dns_domain_filter]
+          tolerations   = local.common_tolerations
+          nodeSelector  = local.common_node_selector
         })
       },
 
@@ -162,8 +204,19 @@ locals {
             create = true
             name   = "external-secrets"
           }
+          # Main controller
+          tolerations  = local.common_tolerations
+          nodeSelector = local.common_node_selector
+          # Webhook component
           webhook = {
-            port = 9443
+            port         = 9443
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
+          }
+          # Cert controller component
+          certController = {
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
           }
         })
       },
@@ -184,6 +237,8 @@ locals {
             "--metric-resolution=15s",
             "--secure-port=10250"
           ]
+          tolerations  = local.common_tolerations
+          nodeSelector = local.common_node_selector
         })
       },
 
@@ -222,6 +277,8 @@ locals {
                   memory = "4Gi"
                 }
               }
+              tolerations  = local.common_tolerations
+              nodeSelector = local.common_node_selector
             }
           }
 
@@ -257,6 +314,39 @@ locals {
                 memory = "512Mi"
               }
             }
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
+          }
+
+          alertmanager = {
+            alertmanagerSpec = {
+              tolerations  = local.common_tolerations
+              nodeSelector = local.common_node_selector
+            }
+          }
+
+          prometheusOperator = {
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
+          }
+
+          kube-state-metrics = {
+            tolerations  = local.common_tolerations
+            nodeSelector = local.common_node_selector
+          }
+
+          # Node Exporter needs to run on ALL nodes, so only tolerations
+          prometheus-node-exporter = {
+            hostNetwork = true
+            tolerations = concat(
+              local.common_tolerations,
+              [
+                {
+                  operator = "Exists"
+                  effect   = "NoSchedule"
+                }
+              ]
+            )
           }
         })
       },
@@ -276,6 +366,8 @@ locals {
             create = true
             name   = "karpenter"
           }
+          tolerations  = local.common_tolerations
+          nodeSelector = local.common_node_selector
         })
       }
     }
