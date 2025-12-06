@@ -328,6 +328,17 @@ locals {
           prometheusOperator = {
             tolerations  = local.common_tolerations
             nodeSelector = local.common_node_selector
+            # Admission webhooks (the certificate generation jobs)
+            admissionWebhooks = {
+              create = {
+                tolerations  = local.common_tolerations
+                nodeSelector = local.common_node_selector
+              }
+              patch = {
+                tolerations  = local.common_tolerations
+                nodeSelector = local.common_node_selector
+              }
+            }
           }
 
           kube-state-metrics = {

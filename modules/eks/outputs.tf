@@ -67,3 +67,19 @@ output "karpenter_queue_name" {
   description = "Name of the Karpenter SQS interruption queue"
   value       = local.enable_karpenter ? aws_sqs_queue.karpenter_interruption[0].name : null
 }
+
+output "standalone_pod_identity_role_arns" {
+  description = "Map of standalone pod identity association names to IAM role ARNs"
+  value       = { for k, v in aws_iam_role.standalone_pod_identity : k => v.arn }
+}
+
+output "standalone_pod_identity_associations" {
+  description = "Map of standalone pod identity association details"
+  value = {
+    for k, v in aws_eks_pod_identity_association.standalone : k => {
+      namespace       = v.namespace
+      service_account = v.service_account
+      role_arn        = v.role_arn
+    }
+  }
+}
